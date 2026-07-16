@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ Adaptive Icon - 前景层 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 中心 72x72 安全区 -->
+    <group android:scaleX="2.5" android:scaleY="2.5"
+           android:translateX="27" android:translateY="27">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M -10 -8 L -10 8 L 0 6 L 0 -10 Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 10 -8 L 10 8 L 0 6 L 0 -10 Z"/>
+        <path
+            android:fillColor="#1976D2"
+            android:pathData="M -8 -5 L -2 -5.5 L -2 -3.5 L -8 -3 Z"/>
+        <path
+            android:fillColor="#1976D2"
+            android:pathData="M -8 -1 L -2 -1.5 L -2 0.5 L -8 1 Z"/>
+        <path
+            android:fillColor="#1976D2"
+            android:pathData="M 2 -5.5 L 8 -5 L 8 -3 L 2 -3.5 Z"/>
+        <path
+            android:fillColor="#1976D2"
+            android:pathData="M 2 -1.5 L 8 -1 L 8 1 L 2 0.5 Z"/>
+    </group>
+</vector>

@@ -1,0 +1,105 @@
+name: Build Android Debug APK
+
+on:
+  # 手动触发（最常用）
+  workflow_dispatch:
+  # push 到 main / dev 自动触发
+  push:
+    branches: [main, master, dev]
+  # PR 也触发（用于验证）
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ===== 1. 检出代码 =====
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # ===== 2. 安装 JDK 17 =====
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ===== 3. 安装 Flutter =====
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+
+      # ===== 4. 接受 Android 许可 =====
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+
+      # ===== 5. 自动从原仓库下载词库（避免版权问题直接 push 音频） =====
+      - name: Fetch word lists from upstream
+        run: |
+          mkdir -p assets/words
+          mkdir -p assets/audio/179
+          mkdir -p assets/audio/zhenjing
+          mkdir -p assets/audio/538
+          echo "Downloading vocabulary JSON files..."
+          curl -sL -o assets/words/zhenjing.json \
+            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/zhenjing.json || echo "zhenjing.json not found, will use empty"
+          curl -sL -o assets/words/listening179.json \
+            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/listening179.json || echo "listening179.json not found"
+          curl -sL -o assets/words/reading538.json \
+            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/reading538.json || echo "reading538.json not found"
+          ls -la assets/words/
+
+      # ===== 6. 转 SVG 图标为 PNG =====
+      - name: Convert SVG icons to PNG
+        run: |
+          sudo apt-get install -y librsvg2-bin
+          mkdir -p assets/icon
+          rsvg-convert -w 1024 -h 1024 assets/icon/app_icon.svg -o assets/icon/app_icon.png
+          rsvg-convert -w 1024 -h 1024 assets/icon/splash_logo.svg -o assets/icon/splash_logo.png
+          ls -la assets/icon/
+
+      # ===== 7. 安装依赖 =====
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      # ===== 8. 代码生成（Isar / Riverpod） =====
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # ===== 9. 运行测试（验证 SM-2 算法） =====
+      - name: Run tests
+        run: flutter test
+
+      # ===== 10. 分析代码（lint） =====
+      - name: Analyze code
+        run: flutter analyze --no-fatal-infos
+        continue-on-error: true
+
+      # ===== 11. 构建 Debug APK =====
+      - name: Build Debug APK
+        run: flutter build apk --debug
+
+      # ===== 12. 上传 APK 为 Artifact =====
+      - name: Upload APK to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ielts-app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      # ===== 13. 输出 APK 信息 =====
+      - name: Show APK info
+        run: |
+          echo "=== APK 构建完成 ==="
+          ls -lh build/app/outputs/flutter-apk/app-debug.apk
+          echo "=== MD5 ==="
+          md5sum build/app/outputs/flutter-apk/app-debug.apk

@@ -1,0 +1,54 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+.metadata
+.fvm/
+
+# Android
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+android/key.properties
+android/app/upload-keystore.jks
+*.keystore
+*.jks
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/xcuserdata/
+*.ipa
+
+# 资源（避免推送到 git，由 CI 下载）
+assets/audio/**/*.mp3
+assets/words/*.json
+!assets/words/README.md
+!assets/audio/README.md
+
+# 系统
+.DS_Store
+Thumbs.db
+*.log
+
+# OpenClaw / 编辑器
+.qclaw/
+*.swp
+*~
