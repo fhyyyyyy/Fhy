@@ -14,8 +14,16 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // 初始化 Isar 等
-  await bootstrap();
+  // 初始化 Isar 等（失败不阻塞 UI）
+  final bootResult = await bootstrap();
+  debugPrint('[main] bootstrap result: ${bootResult.error ?? "ok"}');
 
-  runApp(const ProviderScope(child: IeltsApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        bootstrapProvider.overrideWithValue(bootResult),
+      ],
+      child: const IeltsApp(),
+    ),
+  );
 }

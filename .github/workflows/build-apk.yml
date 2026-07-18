@@ -102,20 +102,17 @@ jobs:
             echo "namespace will be patched at plugin level after pub get"
           fi
 
-      - name: Fetch word lists from upstream
+      - name: Verify word lists are committed
         run: |
-          mkdir -p assets/words
-          mkdir -p assets/audio/179
-          mkdir -p assets/audio/zhenjing
-          mkdir -p assets/audio/538
-          echo "Downloading vocabulary JSON files..."
-          curl -sL -o assets/words/zhenjing.json \
-            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/zhenjing.json || echo "zhenjing.json not found"
-          curl -sL -o assets/words/listening179.json \
-            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/listening179.json || echo "listening179.json not found"
-          curl -sL -o assets/words/reading538.json \
-            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/reading538.json || echo "reading538.json not found"
-          ls -la assets/words/
+          echo "=== Verifying word JSON files are present ==="
+          ls -la assets/words/ || (echo "ERROR: assets/words/ missing" && exit 1)
+          for f in zhenjing.json listening179.json reading538.json; do
+            if [ ! -f "assets/words/$f" ]; then
+              echo "ERROR: assets/words/$f missing"
+              exit 1
+            fi
+            echo "  ✓ assets/words/$f ($(stat -c %s assets/words/$f) bytes)"
+          done
 
       - name: Convert SVG icons to PNG
         run: |

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/bootstrap.dart';
 import '../../../data/models/word.dart';
 import '../../../data/repositories/review_repository.dart';
 
@@ -10,6 +11,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final boot = ref.watch(bootstrapProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('ÈõÖÊÄùËØçÊ±á'),
@@ -34,6 +36,7 @@ class HomePage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (boot.error != null) _ErrorBanner(error: boot.error!),
           _TodayProgressCard(),
           const SizedBox(height: 24),
           Text('ÂºÄÂßãÂ≠¶‰π†', style: Theme.of(context).textTheme.titleLarge),
@@ -145,5 +148,37 @@ class _BookCard extends StatelessWidget {
       case WordBook.reading538:
         return 'reading538';
     }
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.error});
+  final String error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        border: Border.all(color: Colors.red.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.red.shade700, size: 20),
+              const SizedBox(width: 8),
+              const Text('∆Ù∂ØæØ∏Ê', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(error, style: const TextStyle(fontSize: 12, color: Colors.red)),
+        ],
+      ),
+    );
   }
 }

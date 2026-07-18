@@ -1,0 +1,112 @@
+﻿[
+    {
+        "word":  "abandon",
+        "meaning":  "放弃，遗弃",
+        "replace":  [
+                        "desert",
+                        "forsake",
+                        "quit"
+                    ],
+        "type":  "v.",
+        "index":  1
+    },
+    {
+        "word":  "ability",
+        "meaning":  "能力，才能",
+        "replace":  [
+                        "capacity",
+                        "competence",
+                        "skill"
+                    ],
+        "type":  "n.",
+        "index":  2
+    },
+    {
+        "word":  "abnormal",
+        "meaning":  "反常的，不正常的",
+        "replace":  [
+                        "unusual",
+                        "irregular",
+                        "atypical"
+                    ],
+        "type":  "adj.",
+        "index":  3
+    },
+    {
+        "word":  "abolish",
+        "meaning":  "废除，废止",
+        "replace":  [
+                        "eliminate",
+                        "erase",
+                        "remove"
+                    ],
+        "type":  "v.",
+        "index":  4
+    },
+    {
+        "word":  "absorb",
+        "meaning":  "吸收，吸引",
+        "replace":  [
+                        "take in",
+                        "soak up",
+                        "assimilate"
+                    ],
+        "type":  "v.",
+        "index":  5
+    },
+    {
+        "word":  "abstract",
+        "meaning":  "抽象的",
+        "replace":  [
+                        "theoretical",
+                        "conceptual",
+                        "intangible"
+                    ],
+        "type":  "adj.",
+        "index":  6
+    },
+    {
+        "word":  "abundant",
+        "meaning":  "丰富的，充裕的",
+        "replace":  [
+                        "plentiful",
+                        "ample",
+                        "copious"
+                    ],
+        "type":  "adj.",
+        "index":  7
+    },
+    {
+        "word":  "accelerate",
+        "meaning":  "加速，促进",
+        "replace":  [
+                        "speed up",
+                        "quicken",
+                        "hasten"
+                    ],
+        "type":  "v.",
+        "index":  8
+    },
+    {
+        "word":  "accommodate",
+        "meaning":  "容纳，适应",
+        "replace":  [
+                        "house",
+                        "hold",
+                        "adapt"
+                    ],
+        "type":  "v.",
+        "index":  9
+    },
+    {
+        "word":  "accompany",
+        "meaning":  "陪伴，伴随",
+        "replace":  [
+                        "escort",
+                        "attend",
+                        "follow"
+                    ],
+        "type":  "v.",
+        "index":  10
+    }
+]

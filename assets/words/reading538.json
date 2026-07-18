@@ -1,0 +1,122 @@
+﻿[
+    {
+        "word":  "significant",
+        "meaning":  "重要的，有意义的",
+        "replace":  [
+                        "important",
+                        "considerable",
+                        "substantial",
+                        "major"
+                    ],
+        "type":  "adj.",
+        "index":  1
+    },
+    {
+        "word":  "increase",
+        "meaning":  "增加，增长",
+        "replace":  [
+                        "rise",
+                        "grow",
+                        "climb",
+                        "expand"
+                    ],
+        "type":  "v.",
+        "index":  2
+    },
+    {
+        "word":  "decrease",
+        "meaning":  "减少，降低",
+        "replace":  [
+                        "reduce",
+                        "decline",
+                        "diminish",
+                        "drop"
+                    ],
+        "type":  "v.",
+        "index":  3
+    },
+    {
+        "word":  "important",
+        "meaning":  "重要的",
+        "replace":  [
+                        "crucial",
+                        "vital",
+                        "essential",
+                        "critical"
+                    ],
+        "type":  "adj.",
+        "index":  4
+    },
+    {
+        "word":  "show",
+        "meaning":  "展示，表明",
+        "replace":  [
+                        "demonstrate",
+                        "reveal",
+                        "indicate",
+                        "exhibit"
+                    ],
+        "type":  "v.",
+        "index":  5
+    },
+    {
+        "word":  "cause",
+        "meaning":  "导致，引起",
+        "replace":  [
+                        "trigger",
+                        "induce",
+                        "lead to",
+                        "result in"
+                    ],
+        "type":  "v.",
+        "index":  6
+    },
+    {
+        "word":  "different",
+        "meaning":  "不同的",
+        "replace":  [
+                        "diverse",
+                        "distinct",
+                        "varied",
+                        "disparate"
+                    ],
+        "type":  "adj.",
+        "index":  7
+    },
+    {
+        "word":  "maintain",
+        "meaning":  "维持，保持",
+        "replace":  [
+                        "preserve",
+                        "sustain",
+                        "conserve",
+                        "uphold"
+                    ],
+        "type":  "v.",
+        "index":  8
+    },
+    {
+        "word":  "obtain",
+        "meaning":  "获得，得到",
+        "replace":  [
+                        "acquire",
+                        "gain",
+                        "secure",
+                        "attain"
+                    ],
+        "type":  "v.",
+        "index":  9
+    },
+    {
+        "word":  "complex",
+        "meaning":  "复杂的",
+        "replace":  [
+                        "complicated",
+                        "intricate",
+                        "sophisticated",
+                        "elaborate"
+                    ],
+        "type":  "adj.",
+        "index":  10
+    }
+]

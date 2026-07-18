@@ -37,9 +37,8 @@ ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
 ios/Runner.xcodeproj/xcuserdata/
 *.ipa
 
-# 资源（避免推送到 git，由 CI 下载）
+# 资源（音频版权敏感不提交；词库 JSON 需要 commit 进 APK）
 assets/audio/**/*.mp3
-assets/words/*.json
 !assets/words/README.md
 !assets/audio/README.md
 
