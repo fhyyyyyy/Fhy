@@ -86,6 +86,20 @@ jobs:
           echo "=== Custom manifest installed ==="
           cat android/app/src/main/AndroidManifest.xml
 
+      - name: Patch SDK versions (flutter_tts requires minSdk 24, compileSdk 36)
+        run: |
+          set -e
+          BUILD_GRADLE=android/app/build.gradle
+          if [ ! -f "$BUILD_GRADLE" ]; then
+            echo "ERROR: $BUILD_GRADLE not found"
+            exit 1
+          fi
+          # flutter_tts requires minSdk >= 24, compileSdk >= 36
+          sed -i 's/minSdk = 21/minSdk = 24/g; s/minSdk 21/minSdk 24/g' "$BUILD_GRADLE"
+          sed -i 's/compileSdk = [0-9]\+/compileSdk = 36/g; s/compileSdkVersion [0-9]\+/compileSdkVersion 36/g' "$BUILD_GRADLE"
+          echo "=== Patched build.gradle ==="
+          grep -E "minSdk|compileSdk|targetSdk" "$BUILD_GRADLE" | head -20
+
       - name: Inject namespace for old plugins (isar_flutter_libs fix)
         run: |
           set -e
