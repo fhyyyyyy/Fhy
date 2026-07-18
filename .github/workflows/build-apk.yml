@@ -89,16 +89,42 @@ jobs:
       - name: Patch SDK versions (flutter_tts requires minSdk 24, compileSdk 36)
         run: |
           set -e
-          BUILD_GRADLE=android/app/build.gradle
-          if [ ! -f "$BUILD_GRADLE" ]; then
-            echo "ERROR: $BUILD_GRADLE not found"
-            exit 1
-          fi
           # flutter_tts requires minSdk >= 24, compileSdk >= 36
-          sed -i 's/minSdk = 21/minSdk = 24/g; s/minSdk 21/minSdk 24/g' "$BUILD_GRADLE"
-          sed -i 's/compileSdk = [0-9]\+/compileSdk = 36/g; s/compileSdkVersion [0-9]\+/compileSdkVersion 36/g' "$BUILD_GRADLE"
-          echo "=== Patched build.gradle ==="
-          grep -E "minSdk|compileSdk|targetSdk" "$BUILD_GRADLE" | head -20
+          # Flutter 3.24 generates: minSdk = flutter.minSdkVersion (i.e. 21)
+          # We rewrite these lines regardless of format using Python.
+          python3 <<'PYEOF'
+          import re, glob, os
+          # 1) android/app/build.gradle (or .kts)
+          candidates = ['android/app/build.gradle', 'android/app/build.gradle.kts']
+          for path in candidates:
+              if not os.path.exists(path):
+                  continue
+              with open(path, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              original = content
+              # Replace any minSdk = <anything> with minSdk = 24
+              # Matches: minSdk = 21, minSdk = flutter.minSdkVersion, minSdk = flutter.targetSdkVersion
+              content = re.sub(r'minSdk\s*=\s*[^\n,)]+', 'minSdk = 24', content)
+              # Replace any compileSdk = <anything> with compileSdk = 36
+              content = re.sub(r'compileSdk\s*=\s*[^\n,)]+', 'compileSdk = 36', content)
+              # Also handle old DSL: minSdkVersion / compileSdkVersion
+              content = re.sub(r'minSdkVersion\s+[0-9]+', 'minSdkVersion 24', content)
+              content = re.sub(r'compileSdkVersion\s+[0-9]+', 'compileSdkVersion 36', content)
+              if content != original:
+                  with open(path, 'w', encoding='utf-8') as f:
+                      f.write(content)
+                  print(f"Patched {path}")
+              else:
+                  print(f"No changes in {path}")
+          # 2) Show result
+          for path in candidates:
+              if os.path.exists(path):
+                  print(f"--- {path} (relevant lines) ---")
+                  with open(path, 'r', encoding='utf-8') as f:
+                      for line in f:
+                          if any(k in line for k in ['minSdk', 'compileSdk', 'targetSdk', 'namespace']):
+                              print(line.rstrip())
+          PYEOF
 
       - name: Inject namespace for old plugins (isar_flutter_libs fix)
         run: |
