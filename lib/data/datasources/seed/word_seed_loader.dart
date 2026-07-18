@@ -40,33 +40,24 @@ class WordSeedLoader {
   Future<void> _seedAll() async {
     final isar = IsarService.instance.isar;
 
-    // 三个词库的 JSON
-    await _seedOne(isar, 'assets/words/zhenjing.json', WordBook.zhenjing,
-        'assets/audio/zhenjing/');
+    // 三个词库的 JSON（朗读由 TTS 实时合成，不再依赖音频文件）
+    await _seedOne(isar, 'assets/words/zhenjing.json', WordBook.zhenjing);
     await _seedOne(isar, 'assets/words/listening179.json',
-        WordBook.listening179, 'assets/audio/179/');
-    await _seedOne(isar, 'assets/words/reading538.json', WordBook.reading538,
-        'assets/audio/538/');
+        WordBook.listening179);
+    await _seedOne(isar, 'assets/words/reading538.json',
+        WordBook.reading538);
   }
 
   Future<void> _seedOne(
     Isar isar,
     String jsonPath,
     WordBook book,
-    String audioDir,
   ) async {
     final jsonStr = await rootBundle.loadString(jsonPath);
     final list = (jsonDecode(jsonStr) as List).cast<Map<String, dynamic>>();
 
     final words = list.map((m) {
-      final w = m['word'] as String;
-      // 文件名清洗：替换空格为下划线
-      final fileName = '${w.replaceAll(' ', '_')}.mp3';
-      return Word.fromJson(
-        m,
-        book: book,
-        audioPath: '$audioDir$fileName',
-      );
+      return Word.fromJson(m, book: book);
     }).toList();
 
     await isar.writeTxn(() async {

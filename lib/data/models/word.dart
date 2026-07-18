@@ -32,10 +32,10 @@ class Word {
   /// 同义替换词列表
   late List<String> replace;
 
-  /// 音频资源路径（Flutter asset 路径）
-  /// 例如：assets/audio/179/reserve.mp3
+  /// 音频资源路径（Flutter asset 路径，已废弃，改用 TTS 朗读）
+  /// 保留字段以保持 Isar schema 兼容。新值留空。
   @Index()
-  late String audioPath;
+  String? audioPath;
 
   Word();
 
@@ -43,7 +43,7 @@ class Word {
   factory Word.fromJson(
     Map<String, dynamic> json, {
     required WordBook book,
-    required String audioPath,
+    String? audioPath,
   }) {
     return Word()
       ..word = (json['word'] as String).toLowerCase().trim()

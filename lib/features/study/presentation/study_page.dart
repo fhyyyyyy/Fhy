@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../../data/models/word.dart';
 import '../../../data/models/wrong_answer.dart';
@@ -17,10 +17,11 @@ class StudyPage extends ConsumerStatefulWidget {
 }
 
 class _StudyPageState extends ConsumerState<StudyPage> {
-  final _player = AudioPlayer();
+  final FlutterTts _tts = FlutterTts();
   final _spellingCtrl = TextEditingController();
   final _synonymCtrl = TextEditingController();
   final _focusNode = FocusNode();
+  bool _ttsReady = false;
 
   List<Word> _queue = const [];
   int _index = 0;
@@ -32,7 +33,20 @@ class _StudyPageState extends ConsumerState<StudyPage> {
   @override
   void initState() {
     super.initState();
+    _initTts();
     _loadQueue();
+  }
+
+  Future<void> _initTts() async {
+    try {
+      await _tts.setLanguage('en-US');
+      await _tts.setSpeechRate(0.45);
+      await _tts.setPitch(1.0);
+      await _tts.setVolume(1.0);
+      if (mounted) setState(() => _ttsReady = true);
+    } catch (_) {
+      // TTS 初始化失败不阻塞主流程
+    }
   }
 
   Future<void> _loadQueue() async {
@@ -44,7 +58,7 @@ class _StudyPageState extends ConsumerState<StudyPage> {
       _loading = false;
     });
     if (_queue.isNotEmpty) {
-      _autoPlay();
+      _speak();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focusNode.requestFocus();
       });
@@ -55,14 +69,14 @@ class _StudyPageState extends ConsumerState<StudyPage> {
       ? _queue[_index]
       : null;
 
-  Future<void> _autoPlay() async {
+  Future<void> _speak() async {
     final w = _current;
-    if (w == null) return;
+    if (w == null || !_ttsReady) return;
     try {
-      await _player.setAsset(w.audioPath);
-      await _player.play();
+      await _tts.stop();
+      await _tts.speak(w.word);
     } catch (_) {
-      // 音频缺失不阻塞
+      // 朗读失败不阻塞
     }
   }
 
@@ -124,7 +138,7 @@ class _StudyPageState extends ConsumerState<StudyPage> {
     if (_index >= _queue.length) {
       _showSummary();
     } else {
-      _autoPlay();
+      _speak();
       _focusNode.requestFocus();
     }
   }
@@ -151,7 +165,7 @@ class _StudyPageState extends ConsumerState<StudyPage> {
 
   @override
   void dispose() {
-    _player.dispose();
+    _tts.stop();
     _spellingCtrl.dispose();
     _synonymCtrl.dispose();
     _focusNode.dispose();
@@ -195,7 +209,7 @@ class _StudyPageState extends ConsumerState<StudyPage> {
                 IconButton.filled(
                   iconSize: 48,
                   icon: const Icon(Icons.volume_up),
-                  onPressed: _autoPlay,
+                  onPressed: _speak,
                 ),
               ],
             ),
