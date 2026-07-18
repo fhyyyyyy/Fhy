@@ -24,7 +24,8 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
 
   # 文字转语音（朗读单词）
-  flutter_tts: ^4.0.2
+  # Pinned to 3.x: 4.x uses Kotlin 2.2 which conflicts with Flutter 3.24.5's Kotlin 1.8
+  flutter_tts: ^3.6.0
 
   # 工具
   intl: ^0.19.0
