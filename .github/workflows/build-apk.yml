@@ -88,27 +88,22 @@ jobs:
 
       - name: Inject namespace for old plugins (isar_flutter_libs fix)
         run: |
-          # isar_flutter_libs and other old plugins don't specify namespace
-          # AGP 8.x requires it. Inject a default namespace for any subproject missing one.
+          set -e
           if [ -f android/build.gradle ]; then
-            cat >> android/build.gradle <<'GRADLE_EOF'
-
-// === Auto-injected by CI: fix old plugins missing namespace (AGP 8.x) ===
-subprojects { subproject ->
-    afterEvaluate {
-        if (subproject.hasProperty('android')) {
-            def androidExt = subproject.android
-            if (androidExt.namespace == null) {
-                androidExt.namespace = subproject.group.toString().isEmpty()
-                    ? "com.flutter.${subproject.name.replaceAll('[^a-zA-Z0-9_]', '_')}"
-                    : "${subproject.group}.${subproject.name.replaceAll('[^a-zA-Z0-9_]', '_')}"
-            }
-        }
-    }
-}
-GRADLE_EOF
+            printf '\n// Auto-injected namespace fix for old plugins\n' >> android/build.gradle
+            printf 'subprojects { subproject ->\n' >> android/build.gradle
+            printf '    afterEvaluate {\n' >> android/build.gradle
+            printf '        if (subproject.hasProperty("android")) {\n' >> android/build.gradle
+            printf '            subproject.android {\n' >> android/build.gradle
+            printf '                if (namespace == null) {\n' >> android/build.gradle
+            printf "                    namespace = 'com.flutter.' + subproject.name.replaceAll('[^a-zA-Z0-9_]', '_')\n" >> android/build.gradle
+            printf '                }\n' >> android/build.gradle
+            printf '            }\n' >> android/build.gradle
+            printf '        }\n' >> android/build.gradle
+            printf '    }\n' >> android/build.gradle
+            printf '}\n' >> android/build.gradle
             echo "namespace fix injected"
-            tail -15 android/build.gradle
+            tail -20 android/build.gradle
           else
             echo "android/build.gradle not found"
           fi
