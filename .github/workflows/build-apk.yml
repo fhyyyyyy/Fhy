@@ -27,7 +27,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ===== 3. 安装 Flutter =====
+      # ===== 3. 安装 Flutter (内部会自动处理 Android SDK 和许可) =====
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -35,11 +35,13 @@ jobs:
           channel: stable
           cache: true
 
-      # ===== 4. 接受 Android 许可 =====
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+      # ===== 4. 验证 Android SDK 可用 =====
+      - name: Verify Android SDK
+        run: |
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          ls -la $ANDROID_HOME 2>/dev/null || echo "ANDROID_HOME not set"
+          flutter doctor -v 2>&1 | head -40 || true
 
       # ===== 5. 自动从原仓库下载词库（避免版权问题直接 push 音频） =====
       - name: Fetch word lists from upstream
@@ -57,7 +59,7 @@ jobs:
             https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/reading538.json || echo "reading538.json not found"
           ls -la assets/words/
 
-      # ===== 6. 转 SVG 图标为 PNG =====
+      # ===== 5b. 转 SVG 图标为 PNG =====
       - name: Convert SVG icons to PNG
         run: |
           sudo apt-get install -y librsvg2-bin
@@ -66,28 +68,28 @@ jobs:
           rsvg-convert -w 1024 -h 1024 assets/icon/splash_logo.svg -o assets/icon/splash_logo.png
           ls -la assets/icon/
 
-      # ===== 7. 安装依赖 =====
+      # ===== 6. 安装依赖 =====
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ===== 8. 代码生成（Isar / Riverpod） =====
+      # ===== 7. 代码生成（Isar / Riverpod） =====
       - name: Run build_runner
         run: dart run build_runner build --delete-conflicting-outputs
 
-      # ===== 9. 运行测试（验证 SM-2 算法） =====
+      # ===== 8. 运行测试（验证 SM-2 算法） =====
       - name: Run tests
         run: flutter test
 
-      # ===== 10. 分析代码（lint） =====
+      # ===== 9. 分析代码（lint） =====
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
         continue-on-error: true
 
-      # ===== 11. 构建 Debug APK =====
+      # ===== 10. 构建 Debug APK =====
       - name: Build Debug APK
         run: flutter build apk --debug
 
-      # ===== 12. 上传 APK 为 Artifact =====
+      # ===== 11. 上传 APK 为 Artifact =====
       - name: Upload APK to artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -96,7 +98,7 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      # ===== 13. 输出 APK 信息 =====
+      # ===== 12. 输出 APK 信息 =====
       - name: Show APK info
         run: |
           echo "=== APK 构建完成 ==="
