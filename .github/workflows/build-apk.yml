@@ -1,12 +1,9 @@
 name: Build Android Debug APK
 
 on:
-  # 手动触发（最常用）
   workflow_dispatch:
-  # push 到 main / dev 自动触发
   push:
     branches: [main, master, dev]
-  # PR 也触发（用于验证）
   pull_request:
     branches: [main, master]
 
@@ -16,18 +13,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # ===== 1. 检出代码 =====
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # ===== 2. 安装 JDK 17 =====
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # ===== 3. 安装 Flutter (内部会自动处理 Android SDK 和许可) =====
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -35,15 +29,61 @@ jobs:
           channel: stable
           cache: true
 
-      # ===== 4. 验证 Android SDK 可用 =====
-      - name: Verify Android SDK
+      - name: Create full Android project structure
         run: |
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
-          ls -la $ANDROID_HOME 2>/dev/null || echo "ANDROID_HOME not set"
-          flutter doctor -v 2>&1 | head -40 || true
+          echo "=== Remove incomplete android/ directory ==="
+          rm -rf android
+          ls -la
+          echo ""
+          echo "=== Run flutter create to generate full Android project ==="
+          flutter create . \
+            --org com.ieltsapp \
+            --project-name ielts_app \
+            --platforms android \
+            --description "IELTS Vocab App"
+          echo ""
+          echo "=== Verify android/ structure ==="
+          find android -type f | head -30
+          echo ""
+          echo "=== Restore our custom AndroidManifest.xml ==="
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+              <application
+                  android:label="IELTS Vocab"
+                  android:name="${applicationName}"
+                  android:icon="@mipmap/ic_launcher"
+                  android:enableOnBackInvokedCallback="true">
+                  <meta-data
+                      android:name="io.flutter.embedding.android.NormalTheme"
+                      android:resource="@style/NormalTheme"/>
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:launchMode="singleTop"
+                      android:taskAffinity=""
+                      android:theme="@style/LaunchTheme"
+                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+                      android:hardwareAccelerated="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <meta-data
+                          android:name="io.flutter.embedding.android.NormalTheme"
+                          android:resource="@style/NormalTheme"/>
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+                  <meta-data
+                      android:name="android.max_aspect"
+                      android:value="2.1"/>
+              </application>
+          </manifest>
+          EOF
+          echo "=== Custom manifest installed ==="
+          cat android/app/src/main/AndroidManifest.xml
 
-      # ===== 5. 自动从原仓库下载词库（避免版权问题直接 push 音频） =====
       - name: Fetch word lists from upstream
         run: |
           mkdir -p assets/words
@@ -52,44 +92,37 @@ jobs:
           mkdir -p assets/audio/538
           echo "Downloading vocabulary JSON files..."
           curl -sL -o assets/words/zhenjing.json \
-            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/zhenjing.json || echo "zhenjing.json not found, will use empty"
+            https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/zhenjing.json || echo "zhenjing.json not found"
           curl -sL -o assets/words/listening179.json \
             https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/listening179.json || echo "listening179.json not found"
           curl -sL -o assets/words/reading538.json \
             https://raw.githubusercontent.com/hefengxian/my-ielts/master/src/pages/ielts/reading538.json || echo "reading538.json not found"
           ls -la assets/words/
 
-      # ===== 5b. 转 SVG 图标为 PNG =====
       - name: Convert SVG icons to PNG
         run: |
           sudo apt-get install -y librsvg2-bin
           mkdir -p assets/icon
-          rsvg-convert -w 1024 -h 1024 assets/icon/app_icon.svg -o assets/icon/app_icon.png
-          rsvg-convert -w 1024 -h 1024 assets/icon/splash_logo.svg -o assets/icon/splash_logo.png
+          rsvg-convert -w 1024 -h 1024 assets/icon/app_icon.svg -o assets/icon/app_icon.png 2>/dev/null || echo "no svg, skip"
+          rsvg-convert -w 1024 -h 1024 assets/icon/splash_logo.svg -o assets/icon/splash_logo.png 2>/dev/null || echo "no svg, skip"
           ls -la assets/icon/
 
-      # ===== 6. 安装依赖 =====
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ===== 7. 代码生成（Isar / Riverpod） =====
       - name: Run build_runner
         run: dart run build_runner build --delete-conflicting-outputs
 
-      # ===== 8. 运行测试（验证 SM-2 算法） =====
       - name: Run tests
         run: flutter test
 
-      # ===== 9. 分析代码（lint） =====
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
         continue-on-error: true
 
-      # ===== 10. 构建 Debug APK =====
       - name: Build Debug APK
         run: flutter build apk --debug
 
-      # ===== 11. 上传 APK 为 Artifact =====
       - name: Upload APK to artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -98,10 +131,8 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      # ===== 12. 输出 APK 信息 =====
       - name: Show APK info
         run: |
-          echo "=== APK 构建完成 ==="
+          echo "=== APK build complete ==="
           ls -lh build/app/outputs/flutter-apk/app-debug.apk
-          echo "=== MD5 ==="
           md5sum build/app/outputs/flutter-apk/app-debug.apk
