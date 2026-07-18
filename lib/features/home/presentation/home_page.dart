@@ -82,12 +82,11 @@ class _TodayProgressCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('今日任务',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
+                Text('今日任务', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 12),
                 Text(
-                  due == 0 ? '🎉 全部复习完成！' : '📚 待复习 $due 词',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  due == 0 ? '今日已全部完成！' : '待复习：$due 词',
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ],
             ),
@@ -98,21 +97,14 @@ class _TodayProgressCard extends ConsumerWidget {
   }
 
   Future<int> _totalDue(ReviewRepository repo) async {
-    var total = 0;
-    for (final b in WordBook.values) {
-      total += (await repo.getDueWords(b, limit: 1000)).length;
-    }
-    return total;
+    final z = await repo.totalDueForBook(WordBook.zhenjing);
+    final l = await repo.totalDueForBook(WordBook.listening179);
+    final r = await repo.totalDueForBook(WordBook.reading538);
+    return z + l + r;
   }
 }
 
 class _BookCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final WordBook book;
-
   const _BookCard({
     required this.title,
     required this.subtitle,
@@ -121,9 +113,16 @@ class _BookCard extends StatelessWidget {
     required this.book,
   });
 
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final WordBook book;
+
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color.withOpacity(0.2),
@@ -132,14 +131,12 @@ class _BookCard extends StatelessWidget {
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.pushNamed('study', pathParameters: {
-          'book': _bookSlug(book),
-        }),
+        onTap: () => context.pushNamed('study', pathParameters: {'book': _bookKey(book)}),
       ),
     );
   }
 
-  static String _bookSlug(WordBook b) {
+  String _bookKey(WordBook b) {
     switch (b) {
       case WordBook.zhenjing:
         return 'zhenjing';
@@ -172,7 +169,7 @@ class _ErrorBanner extends StatelessWidget {
             children: [
               Icon(Icons.warning_amber, color: Colors.red.shade700, size: 20),
               const SizedBox(width: 8),
-              const Text('��������', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              const Text('启动警告', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
             ],
           ),
           const SizedBox(height: 8),
