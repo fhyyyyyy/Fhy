@@ -86,6 +86,33 @@ jobs:
           echo "=== Custom manifest installed ==="
           cat android/app/src/main/AndroidManifest.xml
 
+      - name: Inject namespace for old plugins (isar_flutter_libs fix)
+        run: |
+          # isar_flutter_libs and other old plugins don't specify namespace
+          # AGP 8.x requires it. Inject a default namespace for any subproject missing one.
+          if [ -f android/build.gradle ]; then
+            cat >> android/build.gradle <<'GRADLE_EOF'
+
+// === Auto-injected by CI: fix old plugins missing namespace (AGP 8.x) ===
+subprojects { subproject ->
+    afterEvaluate {
+        if (subproject.hasProperty('android')) {
+            def androidExt = subproject.android
+            if (androidExt.namespace == null) {
+                androidExt.namespace = subproject.group.toString().isEmpty()
+                    ? "com.flutter.${subproject.name.replaceAll('[^a-zA-Z0-9_]', '_')}"
+                    : "${subproject.group}.${subproject.name.replaceAll('[^a-zA-Z0-9_]', '_')}"
+            }
+        }
+    }
+}
+GRADLE_EOF
+            echo "namespace fix injected"
+            tail -15 android/build.gradle
+          else
+            echo "android/build.gradle not found"
+          fi
+
       - name: Fetch word lists from upstream
         run: |
           mkdir -p assets/words
