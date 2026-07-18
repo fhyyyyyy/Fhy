@@ -89,23 +89,17 @@ jobs:
       - name: Inject namespace for old plugins (isar_flutter_libs fix)
         run: |
           set -e
-          if [ -f android/build.gradle ]; then
-            printf '\n// Auto-injected namespace fix for old plugins\n' >> android/build.gradle
-            printf 'subprojects { subproject ->\n' >> android/build.gradle
-            printf '    afterEvaluate {\n' >> android/build.gradle
-            printf '        if (subproject.hasProperty("android")) {\n' >> android/build.gradle
-            printf '            subproject.android {\n' >> android/build.gradle
-            printf '                if (namespace == null) {\n' >> android/build.gradle
-            printf "                    namespace = 'com.flutter.' + subproject.name.replaceAll('[^a-zA-Z0-9_]', '_')\n" >> android/build.gradle
-            printf '                }\n' >> android/build.gradle
-            printf '            }\n' >> android/build.gradle
-            printf '        }\n' >> android/build.gradle
-            printf '    }\n' >> android/build.gradle
-            printf '}\n' >> android/build.gradle
-            echo "namespace fix injected"
-            tail -20 android/build.gradle
-          else
-            echo "android/build.gradle not found"
+          # isar_flutter_libs and other old plugins don't specify namespace,
+          # which AGP 8.x requires. Fix it via gradle.properties instead of build.gradle
+          # (modifying build.gradle after evaluation breaks it).
+          if [ -f android/gradle.properties ]; then
+            # Use the AGP 8 built-in flag that auto-migrates packages to namespaces
+            if ! grep -q "android.useAndroidX=true" android/gradle.properties; then
+              printf '\nandroid.useAndroidX=true\n' >> android/gradle.properties
+            fi
+            # The real fix: use android.namespace injection at plugin level via pluginManagement
+            # Easier: directly patch the isar_flutter_libs build.gradle inside pub-cache after pub get
+            echo "namespace will be patched at plugin level after pub get"
           fi
 
       - name: Fetch word lists from upstream
@@ -133,6 +127,31 @@ jobs:
 
       - name: Install Flutter dependencies
         run: flutter pub get
+
+      - name: Patch isar_flutter_libs namespace (AGP 8.x requirement)
+        run: |
+          set -e
+          # isar_flutter_libs and other old plugins don't specify namespace
+          # AGP 8.x requires it. Patch each plugin's android/build.gradle after pub get.
+          for plugin in isar_flutter_libs shared_preferences_android path_provider_android; do
+            for d in $HOME/.pub-cache/hosted/pub.dev/${plugin}-*; do
+              if [ -d "$d" ] && [ -d "$d/android" ]; then
+                BUILD_GRADLE="$d/android/build.gradle"
+                if [ -f "$BUILD_GRADLE" ] && ! grep -q "namespace" "$BUILD_GRADLE"; then
+                  MANIFEST="$d/android/src/main/AndroidManifest.xml"
+                  NS=""
+                  if [ -f "$MANIFEST" ]; then
+                    NS=$(grep -oP 'package="\K[^"]+' "$MANIFEST" 2>/dev/null || true)
+                  fi
+                  if [ -z "$NS" ]; then
+                    NS="io.flutter.plugins.${plugin}"
+                  fi
+                  printf "\nandroid {\n    namespace \"%s\"\n}\n" "$NS" >> "$BUILD_GRADLE"
+                  echo "namespace injected for $plugin: $NS"
+                fi
+              fi
+            done
+          done
 
       - name: Run build_runner
         run: dart run build_runner build --delete-conflicting-outputs
