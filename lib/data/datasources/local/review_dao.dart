@@ -44,4 +44,18 @@ class ReviewDao {
         .anyOf<int, int>(ids, (q, id) => q.wordIdEqualTo(id))
         .count();
   }
+
+  /// 某词库到期需复习的词数（不取数据只计数，性能高）
+  Future<int> countDue(WordBook book, DateTime now) async {
+    final wordDao = WordDao(_isar);
+    final words = await wordDao.getByBook(book);
+    final ids = words.map((w) => w.id).toList();
+    if (ids.isEmpty) return 0;
+    return _isar.reviewStates
+        .filter()
+        .anyOf<int, int>(ids, (q, id) => q.wordIdEqualTo(id))
+        .and()
+        .dueDateLessThan(now)
+        .count();
+  }
 }

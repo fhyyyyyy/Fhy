@@ -76,6 +76,11 @@ class ReviewRepository {
   Future<int> countLearned(WordBook book) async {
     return await _reviewDao.countLearned(book);
   }
+
+  /// 某词库今天到期的词数（调度预览用）
+  Future<int> totalDueForBook(WordBook book) async {
+    return await _reviewDao.countDue(book, DateTime.now());
+  }
 }
 
 final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
