@@ -1,8 +1,8 @@
 import 'package:isar/isar.dart';
 
-import '../../../core/utils/isar_provider.dart';
 import '../../models/review_state.dart';
 import '../../models/word.dart';
+import 'word_dao.dart';
 
 /// 复习状态 DAO
 class ReviewDao {
@@ -35,14 +35,13 @@ class ReviewDao {
 
   /// 某词库总学习数
   Future<int> countLearned(WordBook book) async {
-    // 通过 word join 统计：所有有 ReviewState 记录且 word 属于该词库
     final wordDao = WordDao(_isar);
     final words = await wordDao.getByBook(book);
     final ids = words.map((w) => w.id).toList();
     if (ids.isEmpty) return 0;
     return _isar.reviewStates
         .filter()
-        .anyOf(ids, (q, id) => q.wordIdEqualTo(id))
+        .anyOf<int, int>(ids, (q, id) => q.wordIdEqualTo(id))
         .count();
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:isar/isar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/utils/isar_provider.dart';
+import '../local/isar_service.dart';
 import '../../models/word.dart';
 
 /// 词库种子加载器

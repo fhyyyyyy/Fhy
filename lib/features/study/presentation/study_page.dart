@@ -135,7 +135,7 @@ class _StudyPageState extends ConsumerState<StudyPage> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: const Text('本次完成 🎉'),
-        content: Text('良好+ $correctStr  错误 $errorStr'.replaceAll('correctStr', '$_correct').replaceAll('errorStr', '$_error')),
+        content: Text('良好 $_correct 个  错误 $_error 个'),
         actions: [
           TextButton(
             onPressed: () {
