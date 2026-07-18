@@ -32,7 +32,8 @@ class Sm2Output {
     required this.newDueDate,
   });
 
-  bool get isCorrect => newRepetition > previousRepetition;
+  /// 答对：当 quality >= 3 时，intervalIncrement > 0；答错时为 0
+  bool get isCorrect => intervalIncrement > 0;
 }
 
 /// SM-2 标准算法（SuperMemo 2，1987）
